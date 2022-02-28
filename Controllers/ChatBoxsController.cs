@@ -74,6 +74,49 @@ namespace SocialNetwork.Controllers
             res.Data = mess;
             return res;
         }
+        /**
+         * Hàm truyền vào 2 userId và lấy về chat id
+         * Nếu có r thì trả về chatbox tương ứng.
+         * Nếu chưa có thì thêm 1 chatbox vào r chả về chatbox đó
+         */
+        [HttpGet("chatbox_id")]
+        public async Task<ServiceResponse> GetChatBoxId(Guid? userId1, Guid? userId2)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                var chatbox = _db.ChatBoxes.FirstOrDefault(e => e.UserId1 == userId1 && e.UserId2 == userId2 ||
+                e.UserId1 == userId2 && e.UserId2 == userId1);
+
+                if (chatbox == null)
+                {
+                    ChatBox cb = new ChatBox();
+                    cb.Id = Guid.NewGuid();
+                    cb.UserId1 = userId1;
+                    cb.UserName1 = _db.UserTbs.Find(userId1).FullName;
+                    cb.UserId2 = userId2;
+                    cb.UserName2 = _db.UserTbs.Find(userId2).FullName;
+                    cb.CreateDate = DateTime.Now;
+                    cb.ModifiedDate = DateTime.Now;
+                    await _db.ChatBoxes.AddAsync(cb);
+                    await _db.SaveChangesAsync();
+                    res.Data = cb;
+                }
+                else
+                {
+                    res.Data = chatbox;
+                }
+                res.Success = true;
+            }
+            catch
+            {
+                res.Success = false;
+                res.Message = "Có lỗi sảy ra";
+                res.ErrorCode = 400;
+            }
+
+            return res;
+        }
 
     }
 }
