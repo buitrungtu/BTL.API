@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
@@ -16,5 +17,7 @@ namespace BTL.API.Model
         public string Address { get; set; }
         public string Department { get; set; }
         public string Position { get; set; }
+        [NotMapped]
+        public string NewPassword { get; set; }
     }
 }
