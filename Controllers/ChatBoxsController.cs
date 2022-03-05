@@ -53,7 +53,7 @@ namespace SocialNetwork.Controllers
         public async Task<ActionResult<PagingData>> GetChatBoxDetail(Guid? chat_box_id, int? page = 1, int? record = 20)
         {
             var pagingData = new PagingData();
-            List<Message> records = await _db.Messages.Where(_ => _.ChatBoxId == chat_box_id).OrderByDescending(x => x.CreateDate).ToListAsync();
+            List<Message> records = await _db.Messages.Where(_ => _.ChatBoxId == chat_box_id).OrderBy(x => x.CreateDate).ToListAsync();
             //Tổng số bản ghi
             pagingData.TotalRecord = records.Count();
             //Tổng số trangalue

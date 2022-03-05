@@ -13,4 +13,10 @@ namespace SocialNetwork.Common
         public const string NotFound = "Không tìm thấy";
         public const string LoginErr = "Sai thông tin đăng nhập hoặc mật khẩu";
     }
+
+    public class Constant
+    {
+        public const string EmailFromAddress = "longkieuck4@gmail.com";
+        public const string Password = "long27112000";
+    }
 }

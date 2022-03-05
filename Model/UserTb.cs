@@ -23,6 +23,7 @@ namespace BTL.API.Model
         public DateTime? CreateDate { get; set; }
         [NotMapped]
         public IFormFile? objFile { get; set; }
-
+        [NotMapped]
+        public string NewPassword { get; set; }
     }
 }

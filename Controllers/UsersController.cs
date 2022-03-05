@@ -9,7 +9,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Net;
+using System.Net.Mail;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace SocialNetwork.Controllers
@@ -51,10 +52,35 @@ namespace SocialNetwork.Controllers
             {
                 res.Success = false;
                 res.Message = ex.ToString();
+                res.Data = null;
+                return res;
             }
             return res;
         }
 
+        
+        [HttpPost("change_password")]
+        public async Task<ServiceResponse> ChangePassWord(UserTb user)
+        {
+            ServiceResponse res = new ServiceResponse();
+            try
+            {
+                var userDb = await _db.UserTbs.FirstOrDefaultAsync(_ => _.Id == user.Id && _.Password == user.Password);
+                userDb.Password = user.NewPassword;
+                await _db.SaveChangesAsync();
+                res.Message = SysMessage.Success;
+                res.Success = true;
+            }
+            catch
+            {
+                res.Message = SysMessage.ErrorMsg;
+                res.ErrorCode = 404;
+                res.Success = false;
+                res.Data = null;
+            }
+
+            return res;
+        }
         [HttpGet]
         public async Task<ActionResult<PagingData>> GetUserByPage([FromQuery] string search, [FromQuery] int? page = 1, [FromQuery] int? record = 20)
         {
@@ -179,6 +205,98 @@ namespace SocialNetwork.Controllers
             res.Message = SysMessage.Success;
             res.Data = user;
             return res;
+        }
+
+        [HttpGet("verify_email")]
+        public async Task<ServiceResponse> VerifyGmail(string userName,string email)
+        {
+            ServiceResponse res = new ServiceResponse();
+
+            try
+            {
+                var userDb = await _db.UserTbs.FirstOrDefaultAsync(_ => _.UserName == userName && _.Email == email);
+                if(userDb == null)
+                {
+                    res.Message = SysMessage.ErrorMsg;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                }
+                else
+                {
+                    Random rd = new Random();
+                    int num = rd.Next(100000,999999);
+                    Dictionary<string, object> result = new Dictionary<string, object>();
+                    result.Add("user_data", userDb);
+                    result.Add("verify_code", num);
+
+                    //Send email
+                    string smtpAddress = "smtp.gmail.com";
+                    int portNumber = 587;
+                    bool enableSSL = true;
+                    string emailFromAddress = Constant.EmailFromAddress; //Sender Email Address  
+                    string password = Constant.Password; //Sender Password  
+                    string emailToAddress = email; //Receiver Email Address  
+                    string subject = "Verify Number";
+                    string body = "Hello, Your verify number is " + num;
+
+                    using (MailMessage mail = new MailMessage())
+                    {
+                        mail.From = new MailAddress(emailFromAddress);
+                        mail.To.Add(emailToAddress);
+                        mail.Subject = subject;
+                        mail.Body = body;
+                        mail.IsBodyHtml = true;
+                        //mail.Attachments.Add(new Attachment("D:\\TestFile.txt"));//--Uncomment this to send any attachment  
+                        using (SmtpClient smtp = new SmtpClient(smtpAddress, portNumber))
+                        {
+                            smtp.Credentials = new NetworkCredential(emailFromAddress, password);
+                            smtp.EnableSsl = enableSSL;
+                            smtp.Send(mail);
+                        }
+                    }
+
+                    res.Message = SysMessage.Success;
+                    res.Data = result;
+                    res.Success = true;
+                }
+            }
+            catch
+            {
+                res.Message = SysMessage.ErrorMsg;
+                res.ErrorCode = 404;
+                res.Success = false;
+                res.Data = null;
+            }
+
+            return res;
+
+
+            //string smtpAddress = "smtp.gmail.com";
+            //int portNumber = 587;
+            //bool enableSSL = true;
+            //string emailFromAddress = "longkieuck4@gmail.com"; //Sender Email Address  
+            //string password = "long27112000"; //Sender Password  
+            //string emailToAddress = "longkieuck@gmail.com"; //Receiver Email Address  
+            //string subject = "Hello";
+            //string body = "Hello, This is Email sending test using gmail.";
+
+            //using (MailMessage mail = new MailMessage())
+            //{
+            //    mail.From = new MailAddress(emailFromAddress);
+            //    mail.To.Add(emailToAddress);
+            //    mail.Subject = subject;
+            //    mail.Body = body;
+            //    mail.IsBodyHtml = true;
+            //    //mail.Attachments.Add(new Attachment("D:\\TestFile.txt"));//--Uncomment this to send any attachment  
+            //    using (SmtpClient smtp = new SmtpClient(smtpAddress, portNumber))
+            //    {
+            //        smtp.Credentials = new NetworkCredential(emailFromAddress, password);
+            //        smtp.EnableSsl = enableSSL;
+            //        smtp.Send(mail);
+            //    }
+            //}
+
         }
     }
 }
