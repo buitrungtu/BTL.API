@@ -311,6 +311,16 @@ namespace BTL.API.Model
                 entity.Property(e => e.UserName)
                     .HasMaxLength(255)
                     .HasColumnName("user_name");
+                entity.Property(e => e.Birthday)
+                    .HasColumnType("datetime")
+                    .HasColumnName("birthday");
+                entity.Property(e => e.Gender)
+                    .HasColumnType("int")
+                    .HasColumnName("gender");
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("create_date")
+                    .HasDefaultValueSql("(getdate())");
             });
 
             OnModelCreatingPartial(modelBuilder);

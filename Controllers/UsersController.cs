@@ -1,10 +1,12 @@
 ﻿using BTL.API.Model;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SocialNetwork.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,27 +19,39 @@ namespace SocialNetwork.Controllers
     public class UsersController : ControllerBase
     {
         private readonly Social_NetworkContext _db;
+        public static IWebHostEnvironment _environment;
 
-        public UsersController(Social_NetworkContext context)
+
+        public UsersController(Social_NetworkContext context, IWebHostEnvironment environment)
         {
             _db = context;
+            _environment = environment;
         }
         [HttpPost("login")]
-        public async Task<ServiceResponse> Login(UserTb user)
+        public async Task<ServiceResponse> Login([FromForm] UserTb user)
         {
             ServiceResponse res = new ServiceResponse();
-            var userDb = await _db.UserTbs.Where(_ => _.UserName == user.UserName && _.Password == user.Password).ToListAsync();
-            if (user == null)
+            try
             {
-                res.Message = SysMessage.LoginErr;
-                res.ErrorCode = 404;
-                res.Success = false;
-                res.Data = null;
+                var userDb = await _db.UserTbs.Where(_ => _.UserName == user.UserName && _.Password == user.Password).ToListAsync();
+                if (userDb == null || userDb.Count < 1)
+                {
+                    res.Message = SysMessage.LoginErr;
+                    res.ErrorCode = 404;
+                    res.Success = false;
+                    res.Data = null;
+                    return res;
+                }
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                result.Add("user_data", userDb);
+                res.Data = result;
+                res.Success = true;
             }
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result.Add("user_data", userDb);
-            res.Data = result;
-            res.Success = true;
+            catch(Exception ex)
+            {
+                res.Success = false;
+                res.Message = ex.ToString();
+            }
             return res;
         }
 
@@ -83,10 +97,33 @@ namespace SocialNetwork.Controllers
         }
 
         [HttpPost]
-        public async Task<ServiceResponse> UserPost(UserTb user)
+        public async Task<ServiceResponse> UserPost([FromForm] UserTb user)
         {
             ServiceResponse res = new ServiceResponse();
+            var userDb = await _db.UserTbs.Where(_ => _.UserName == user.UserName).ToListAsync();
+            if(userDb != null && userDb.Count > 0)
+            {
+                res.Success = false;
+                res.Message = "Tên đăng nhập đã tồn tại";
+                return res;
+            }
             user.Id = Guid.NewGuid();
+            if (user.objFile != null)
+            {
+                if (!Directory.Exists(_environment.WebRootPath + "\\Upload\\"))
+                {
+                    Directory.CreateDirectory(_environment.WebRootPath + "\\Upload\\");
+                }
+                if (user.objFile.Length > 0)
+                {
+                    string fileName = user.Id + "_" + System.IO.Path.GetExtension(user.objFile.FileName);
+                    using (FileStream fileStream = System.IO.File.Create(_environment.WebRootPath + "\\Upload\\" + fileName))
+                    {
+                        user.objFile.CopyTo(fileStream);
+                        fileStream.Flush();
+                    }
+                }
+            }
             await _db.UserTbs.AddAsync(user);
             await _db.SaveChangesAsync();
             res.Success = true;

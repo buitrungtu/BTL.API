@@ -64,6 +64,11 @@ namespace SocialNetwork.Controllers
                 byte[] b = System.IO.File.ReadAllBytes(filePath);
                 return File(b, "image/jpg");
             }
+            else
+            {
+                byte[] b = System.IO.File.ReadAllBytes(path + "default.png");
+                return File(b, "image/jpg");
+            }
             return null;
         }
 
