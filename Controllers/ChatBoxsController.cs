@@ -59,7 +59,7 @@ namespace SocialNetwork.Controllers
             //Tổng số trangalue
             pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value));
             //Dữ liệu của từng trang
-            pagingData.Data = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList();
+            pagingData.Data = records.Skip(records.Count()-(page.Value  * record.Value)).Take(record.Value).ToList();
             return pagingData;
         }
         [HttpPost("add_message")]
