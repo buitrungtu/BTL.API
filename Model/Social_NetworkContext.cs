@@ -125,6 +125,9 @@ namespace BTL.API.Model
                     .HasColumnType("datetime")
                     .HasColumnName("modified_date")
                     .HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.UserId)
+                    .HasColumnName("user_id")
+                    .HasDefaultValueSql("(newid())");
             });
 
             modelBuilder.Entity<Image>(entity =>

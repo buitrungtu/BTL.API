@@ -35,7 +35,7 @@ namespace SocialNetwork.Controllers
             //Tìm kiếm
             if (!string.IsNullOrEmpty(search))
             {
-                string sql_search = "select * from sme.post where CHARINDEX(@txtSeach,content) > 0";
+                string sql_search = "select * from post where CHARINDEX(@txtSeach,content) > 0";
                 var param = new SqlParameter("@txtSeach", search);
                 records = _db.Posts.FromSqlRaw(sql_search, param).OrderByDescending(x => x.CreateDate).ToList();
             }
