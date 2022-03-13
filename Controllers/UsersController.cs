@@ -90,7 +90,7 @@ namespace SocialNetwork.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 string strSearch = "'%" + search + "%'";
-                string sql_search = "select * from sme.user where CHARINDEX(@txtSeach,user_name) > 0 or CHARINDEX(@txtSeach,full_name) > 0";
+                string sql_search = "select * from dbo.user_tb where CHARINDEX(@txtSeach,user_name) > 0 or CHARINDEX(@txtSeach,full_name) > 0";
                 var param = new SqlParameter("@txtSeach", search);
                 records = _db.UserTbs.FromSqlRaw(sql_search, param).ToList();
             }
