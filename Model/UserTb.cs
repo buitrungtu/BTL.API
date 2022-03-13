@@ -19,6 +19,15 @@ namespace BTL.API.Model
         public string Department { get; set; }
         public string Position { get; set; }
         public int? Gender { get; set; }
+        [NotMapped]
+        public string GenderString { get
+            {
+                
+                if (this.Gender == 0) return "Nam";
+                if (this.Gender == 1) return "Nữ";
+                return "Khác";
+            } 
+        }
         public DateTime? Birthday { get; set; }
         public DateTime? CreateDate { get; set; }
         [NotMapped]
