@@ -25,5 +25,10 @@ namespace BTL.API.Model
 
         [NotMapped]
         public List<IFormFile> objFile { get; set; }
+        [NotMapped]
+        public List<Comment> lstCmt { get; set; }
+
+        [NotMapped]
+        public bool isLike { get; set; }
     }
 }

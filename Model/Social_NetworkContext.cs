@@ -208,7 +208,6 @@ namespace BTL.API.Model
                 entity.Property(e => e.CommentCount).HasColumnName("comment_count");
 
                 entity.Property(e => e.Content)
-                    .HasMaxLength(255)
                     .HasColumnName("content");
 
                 entity.Property(e => e.CreateDate)

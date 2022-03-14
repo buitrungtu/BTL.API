@@ -28,7 +28,7 @@ namespace SocialNetwork.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PagingData>> GetPostByPage([FromQuery] string search, [FromQuery] int? page = 1, [FromQuery] int? record = 20)
+        public async Task<ActionResult<PagingData>> GetPostByPage([FromQuery] Guid user_id, [FromQuery] string search, [FromQuery] int? page = 1, [FromQuery] int? record = 20)
         {
             var pagingData = new PagingData();
             List<Post> records = await _db.Posts.OrderByDescending(x => x.CreateDate).ToListAsync();
@@ -47,6 +47,15 @@ namespace SocialNetwork.Controllers
             List<Post> result = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList();
             foreach(var item in result)
             {
+                var liked = _db.UserLikes.Where(_ => _.PostId == item.Id && _.UserId == user_id).FirstOrDefault();
+                if(liked != null)
+                {
+                    item.isLike = true;
+                }
+                else
+                {
+                    item.isLike = false;
+                }
                 item.post_image = _db.Images.Where(_ => _.PostId == item.Id).ToList();
                 item.CreateDateString = this.ChuyenThoiGian(DateTime.Now.Subtract(item.CreateDate).Hours, DateTime.Now.Subtract(item.CreateDate).Minutes, DateTime.Now.Subtract(item.CreateDate).Seconds);
             }
@@ -196,6 +205,70 @@ namespace SocialNetwork.Controllers
             res.Data = post;
             return res;
         }
+
+
+        [HttpPost("add_comment")]
+        public async Task<ServiceResponse> AddComment(Comment comment)
+        {
+            ServiceResponse res = new ServiceResponse();
+            comment.Id = Guid.NewGuid();
+            comment.CreateDate = DateTime.Now;
+            comment.ModifiedDate = DateTime.Now;
+            await _db.Comments.AddAsync(comment);
+            var post = await _db.Posts.FindAsync(comment.PostId);
+            post.CommentCount = post.CommentCount + 1;
+            await _db.SaveChangesAsync();
+            res.Success = true;
+            res.Data = comment;
+            return res;
+        }
+
+        [HttpPost("like_post")]
+        public async Task<ServiceResponse> LikePost(UserLike userLike)
+        {
+            ServiceResponse res = new ServiceResponse();
+            userLike.Id = Guid.NewGuid();
+            var liked =  _db.UserLikes.Where(_ => _.PostId == userLike.PostId && _.UserId == userLike.UserId).FirstOrDefault();
+            var post = await _db.Posts.FindAsync(userLike.PostId);
+            if (liked != null)
+            {
+                _db.UserLikes.Remove(liked);
+                post.LikesCount = post.LikesCount - 1;
+                userLike.isLike = false;
+            }
+            else
+            {
+                await _db.UserLikes.AddAsync(userLike);
+                post.LikesCount = post.LikesCount + 1;
+                userLike.isLike = true;
+            }
+            await _db.SaveChangesAsync();
+            res.Success = true;
+            res.Data = userLike;
+            return res;
+        }
+
+        [HttpGet("post_comment")]
+        public async Task<ActionResult<PagingData>> GetPostComment(Guid? Id, [FromQuery] int? page = 1, [FromQuery] int? record = 10)
+        {
+            var pagingData = new PagingData();
+            List<Comment> records = await _db.Comments.Where(_=>_.PostId == Id).OrderByDescending(x => x.CreateDate).ToListAsync();
+            //Tổng số bản ghi
+            pagingData.TotalRecord = records.Count();
+            //Tổng số trangalue
+            pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value));
+            //Dữ liệu của từng trang
+            List<Comment> result = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList();
+            foreach(var cmt in result)
+            {
+                cmt.CreateDateString = this.ChuyenThoiGian(DateTime.Now.Subtract(cmt.CreateDate).Hours, DateTime.Now.Subtract(cmt.CreateDate).Minutes, DateTime.Now.Subtract(cmt.CreateDate).Seconds);
+            }
+            pagingData.Data = result;
+            return pagingData;
+        }
+
+
+
         string ChuyenThoiGian(int gio, int phut, int giay)
         {
             if(phut < 0)

@@ -174,6 +174,7 @@ namespace SocialNetwork.Controllers
             userDb.Address = user.Address;
             userDb.Department = user.Department;
             userDb.Position = user.Position;
+            userDb.Birthday = user.Birthday;
             await _db.SaveChangesAsync();
             res.Success = true;
             res.Message = SysMessage.Success;
