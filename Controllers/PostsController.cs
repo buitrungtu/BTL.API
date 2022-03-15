@@ -62,6 +62,34 @@ namespace SocialNetwork.Controllers
             pagingData.Data = result;
             return pagingData;
         }
+        [HttpGet("post_by_id")]
+        public async Task<ActionResult<PagingData>> GetPostById([FromQuery] Guid user_id_current, [FromQuery] Guid user_id_search, [FromQuery] int? page = 1, [FromQuery] int? record = 20)
+        {
+            var pagingData = new PagingData();
+            List<Post> records = await _db.Posts.Where(x=> x.UserId == user_id_search).OrderByDescending(x => x.CreateDate).ToListAsync();
+            //Tổng số bản ghi
+            pagingData.TotalRecord = records.Count();
+            //Tổng số trangalue
+            pagingData.TotalPage = Convert.ToInt32(Math.Ceiling((decimal)pagingData.TotalRecord / (decimal)record.Value));
+            //Dữ liệu của từng trang
+            List<Post> result = records.Skip((page.Value - 1) * record.Value).Take(record.Value).ToList();
+            foreach (var item in result)
+            {
+                var liked = _db.UserLikes.Where(_ => _.PostId == item.Id && _.UserId == user_id_current).FirstOrDefault();
+                if (liked != null)
+                {
+                    item.isLike = true;
+                }
+                else
+                {
+                    item.isLike = false;
+                }
+                item.post_image = _db.Images.Where(_ => _.PostId == item.Id).ToList();
+                item.CreateDateString = this.ChuyenThoiGian(DateTime.Now.Subtract(item.CreateDate).Hours, DateTime.Now.Subtract(item.CreateDate).Minutes, DateTime.Now.Subtract(item.CreateDate).Seconds);
+            }
+            pagingData.Data = result;
+            return pagingData;
+        }
 
         [HttpGet("{fileName}")]
         public async Task<IActionResult> GetImage(string fileName)
