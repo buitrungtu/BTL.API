@@ -66,7 +66,7 @@ namespace SocialNetwork.Controllers
         public async Task<ActionResult<PagingData>> GetPostById([FromQuery] Guid user_id_current, [FromQuery] Guid user_id_search, [FromQuery] int? page = 1, [FromQuery] int? record = 20)
         {
             var pagingData = new PagingData();
-            List<Post> records = await _db.Posts.Where(x=> x.UserId == user_id_search).OrderByDescending(x => x.CreateDate).ToListAsync();
+            List<Post> records = await _db.Posts.Where(x=> x.UserId == user_id_search && x.GroupId == null).OrderByDescending(x => x.CreateDate).ToListAsync();
             //Tổng số bản ghi
             pagingData.TotalRecord = records.Count();
             //Tổng số trangalue

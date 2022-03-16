@@ -16,7 +16,7 @@ namespace SocialNetwork.Common
 
     public class Constant
     {
-        public const string EmailFromAddress = "longkieuck4@gmail.com";
-        public const string Password = "long27112000";
+        public const string EmailFromAddress = "tudefttry@gmail.com";
+        public const string Password = "trungtu1";
     }
 }

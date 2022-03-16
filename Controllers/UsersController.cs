@@ -175,6 +175,7 @@ namespace SocialNetwork.Controllers
             userDb.Department = user.Department;
             userDb.Position = user.Position;
             userDb.Birthday = user.Birthday;
+            userDb.Gender = user.Gender;
             await _db.SaveChangesAsync();
             res.Success = true;
             res.Message = SysMessage.Success;
@@ -262,7 +263,7 @@ namespace SocialNetwork.Controllers
                     res.Success = true;
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 res.Message = SysMessage.ErrorMsg;
                 res.ErrorCode = 404;
